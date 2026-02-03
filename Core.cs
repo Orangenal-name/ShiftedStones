@@ -2,14 +2,29 @@
 using Il2CppRUMBLE.Combat.ShiftStones;
 using MelonLoader;
 using RumbleModUI;
+using System.Text.RegularExpressions;
 using UnityEngine;
-using static UnityEngine.Rendering.Universal.UniversalRenderPipeline.Profiling.Pipeline;
 
 [assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.0.0", "Orangenal", null)]
 [assembly: MelonGame("Buckethead Entertainment", "RUMBLE")]
 
 namespace ShiftedStones
 {
+    public class Validation : ValidationParameters
+    {
+        public override bool DoValidation(string Input)
+        {
+            string rgbPattern = @"^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\s(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\s(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$";
+            string hexPattern = @"^#?[0-9A-Fa-f]{6}$";
+
+            if (Regex.IsMatch(Input, rgbPattern) || Regex.IsMatch(Input, hexPattern))
+            {
+                return true;
+            }
+            return false;
+        }
+    }
+
     public class Core : MelonMod
     {
         internal static Mod mod = new Mod();
@@ -28,20 +43,21 @@ namespace ShiftedStones
             mod.SetFolder("ShiftedStones");
             mod.AddDescription("Description", "", "A mod that lets you recolour shiftstones!", new Tags { IsSummary = true });
 
-            mod.AddToList("Flow", "Vanilla", "Colour of the flow stone", new Tags());
-            mod.AddToList("Vigor", "Vanilla", "Colour of the vigor stone", new Tags());
-            mod.AddToList("Guard", "Vanilla", "Colour of the guard stone", new Tags());
-            mod.AddToList("Stubborn", "Vanilla", "Colour of the stubborn stone", new Tags());
-            mod.AddToList("Charge", "Vanilla", "Colour of the charge stone", new Tags());
-            mod.AddToList("Volatile", "Vanilla", "Colour of the volatile stone", new Tags());
-            mod.AddToList("Surge", "Vanilla", "Colour of the surge stone", new Tags());
-            mod.AddToList("Adamant", "Vanilla", "Colour of the adamant stone", new Tags());
+            mod.AddToList("Flow", "Vanilla", "Colour of the flow stone\n\nAccepts colours formatted as hex codes (e.g. #FF00CC) or 3 RGB values (e.g. 255 165 0)", new Tags());
+            mod.AddToList("Vigor", "Vanilla", "Colour of the vigor stone\n\nAccepts colours formatted as hex codes (e.g. #FF00CC) or 3 RGB values (e.g. 255 165 0)", new Tags());
+            mod.AddToList("Guard", "Vanilla", "Colour of the guard stone\n\nAccepts colours formatted as hex codes (e.g. #FF00CC) or 3 RGB values (e.g. 255 165 0)", new Tags());
+            mod.AddToList("Stubborn", "Vanilla", "Colour of the stubborn stone\n\nAccepts colours formatted as hex codes (e.g. #FF00CC) or 3 RGB values (e.g. 255 165 0)", new Tags());
+            mod.AddToList("Charge", "Vanilla", "Colour of the charge stone\n\nAccepts colours formatted as hex codes (e.g. #FF00CC) or 3 RGB values (e.g. 255 165 0)", new Tags());
+            mod.AddToList("Volatile", "Vanilla", "Colour of the volatile stone\n\nAccepts colours formatted as hex codes (e.g. #FF00CC) or 3 RGB values (e.g. 255 165 0)", new Tags());
+            mod.AddToList("Surge", "Vanilla", "Colour of the surge stone\n\nAccepts colours formatted as hex codes (e.g. #FF00CC) or 3 RGB values (e.g. 255 165 0)", new Tags());
+            mod.AddToList("Adamant", "Vanilla", "Colour of the adamant stone\n\nAccepts colours formatted as hex codes (e.g. #FF00CC) or 3 RGB values (e.g. 255 165 0)", new Tags());
 
             foreach (ModSetting setting in mod.Settings)
             {
                 if (setting.Tags.IsSummary) continue;
 
                 setting.SavedValueChanged += OnSave;
+                mod.AddValidation(setting.Name, new Validation());
             }
 
             mod.GetFromFile();
@@ -62,6 +78,29 @@ namespace ShiftedStones
             UI.instance.AddMod(mod);
         }
 
+        private string getCustomShiftstoneObjectParentStone(Renderer renderer)
+        {
+            string val = null;
+            Transform current = renderer.transform;
+            while (val == null)
+            {
+                if (current == null)
+                {
+                    Logger.Error("Could not find shiftstone");
+                    throw new Exception("Cannot find shiftstone name from the given renderer");
+                }
+                if (shiftstoneOrder.Contains(current.name))
+                {
+                    val = current.name;
+                }
+                else
+                {
+                    current = current.parent;
+                }
+            }
+            return val;
+        }
+
         private void OnSave(object sender = null, EventArgs e = null)
         {
             if (loadedStones.Count == 0 || !mod.GetUIStatus()) return;
@@ -77,7 +116,7 @@ namespace ShiftedStones
             //        renderer.material = originalMaterials[shiftstoneOrder.IndexOf(name + " Stone")];
             //    }
             //}
-            foreach (MeshRenderer renderer in customStones.Where(r => r.transform.parent.parent.name == name + "Stone"))
+            foreach (MeshRenderer renderer in customStones.Where(r => getCustomShiftstoneObjectParentStone(r) == name + "Stone"))
             {
                 if (colour.ToLower() == "vanilla" && customStones.Count > 0)
                 {
@@ -130,6 +169,8 @@ namespace ShiftedStones
         internal static void setColours(string colourStr, ref Material material)
         {
             Color colour;
+            colourStr = colourStr.Replace("#","");
+            colourStr = colourStr.Replace("0x", "");
             if (colourStr.Contains(" "))
             {
                 string[] parts = colourStr.Split(' ');
