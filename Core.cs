@@ -5,7 +5,7 @@ using RumbleModUI;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.0.0", "Orangenal", null)]
+[assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.0.1", "Orangenal", null)]
 [assembly: MelonGame("Buckethead Entertainment", "RUMBLE")]
 
 namespace ShiftedStones
@@ -17,7 +17,7 @@ namespace ShiftedStones
             string rgbPattern = @"^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\s(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\s(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$";
             string hexPattern = @"^#?[0-9A-Fa-f]{6}$";
 
-            if (Regex.IsMatch(Input, rgbPattern) || Regex.IsMatch(Input, hexPattern))
+            if (Regex.IsMatch(Input, rgbPattern) || Regex.IsMatch(Input, hexPattern) || Input.ToLower() == "vanilla")
             {
                 return true;
             }
@@ -78,29 +78,6 @@ namespace ShiftedStones
             UI.instance.AddMod(mod);
         }
 
-        private string getCustomShiftstoneObjectParentStone(Renderer renderer)
-        {
-            string val = null;
-            Transform current = renderer.transform;
-            while (val == null)
-            {
-                if (current == null)
-                {
-                    Logger.Error("Could not find shiftstone");
-                    throw new Exception("Cannot find shiftstone name from the given renderer");
-                }
-                if (shiftstoneOrder.Contains(current.name))
-                {
-                    val = current.name;
-                }
-                else
-                {
-                    current = current.parent;
-                }
-            }
-            return val;
-        }
-
         private void OnSave(object sender = null, EventArgs e = null)
         {
             if (loadedStones.Count == 0 || !mod.GetUIStatus()) return;
@@ -116,7 +93,7 @@ namespace ShiftedStones
             //        renderer.material = originalMaterials[shiftstoneOrder.IndexOf(name + " Stone")];
             //    }
             //}
-            foreach (MeshRenderer renderer in customStones.Where(r => getCustomShiftstoneObjectParentStone(r) == name + "Stone"))
+            foreach (MeshRenderer renderer in customStones.Where(r => r.GetComponentInParent<ShiftStone>().gameObject.name == name + "Stone"))
             {
                 if (colour.ToLower() == "vanilla" && customStones.Count > 0)
                 {
