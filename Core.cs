@@ -5,7 +5,6 @@ using RumbleModdingAPI;
 using RumbleModUI;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using static MelonLoader.MelonLogger;
 
 [assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.1.0", "Orangenal", null)]
 [assembly: MelonGame("Buckethead Entertainment", "RUMBLE")]
@@ -110,8 +109,6 @@ namespace ShiftedStones
 
             if (hasRandomiser)
             {
-                MelonLogger.Msg("has randomiser");
-
                 customStones.RemoveAll(r => r.GetComponentInParent<ShiftStone>() == null);
 
                 foreach (ShiftStone stone in Calls.GameObjects.Gym.LOGIC.Heinhouserproducts.ShiftstoneQuickswapper.GetGameObject().GetComponentsInChildren<ShiftStone>(true))
@@ -141,7 +138,6 @@ namespace ShiftedStones
 
             foreach (MeshRenderer renderer in customStones.Where(r => r.GetComponentInParent<ShiftStone>().gameObject.name.Replace("(Clone)", "") == name + "Stone"))
             {
-                MelonLogger.Msg(GetPath(renderer.gameObject));
                 if (colour.ToLower() == "vanilla" && customStones.Count > 0)
                 {
                     renderer.material = originalMaterials[shiftstoneOrder.IndexOf(name + " Stone")];
