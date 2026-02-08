@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppRUMBLE.Combat.ShiftStones;
 using MelonLoader;
 using RumbleModdingAPI;
@@ -6,7 +7,7 @@ using RumbleModUI;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.1.0", "Orangenal", null)]
+[assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.1.1", "Orangenal", null)]
 [assembly: MelonGame("Buckethead Entertainment", "RUMBLE")]
 
 namespace ShiftedStones
@@ -110,8 +111,34 @@ namespace ShiftedStones
             if (hasRandomiser)
             {
                 customStones.RemoveAll(r => r.GetComponentInParent<ShiftStone>() == null);
+                Il2CppArrayBase<ShiftStone> stones = null;
+                string sceneName = Calls.Scene.GetSceneName();
+                if (sceneName == "Gym")
+                {
+                    stones = Calls.GameObjects.Gym.LOGIC.Heinhouserproducts.ShiftstoneQuickswapper.GetGameObject().GetComponentsInChildren<ShiftStone>(true);
+                }
+                else if (sceneName == "Park")
+                {
+                    stones = Calls.GameObjects.Park.LOGIC.ShiftstoneQuickswapper.GetGameObject().GetComponentsInChildren<ShiftStone>(true);
+                }
+                else if (sceneName == "Map0")
+                {
+                    if (Calls.Players.GetAllPlayers().Count > 1)
+                    {
+                        stones = Calls.GameObjects.Map0.Logic.MatchSlabOne.MatchSlab.Slabbuddymatchvariant.MatchForm.ShiftstoneQuickswapper.GetGameObject().GetComponentsInChildren<ShiftStone>(true);
+                        stones.Concat(Calls.GameObjects.Map0.Logic.MatchSlabTwo.MatchSlab.Slabbuddymatchvariant.MatchForm.ShiftstoneQuickswapper.GetGameObject().GetComponentsInChildren<ShiftStone>(true));
+                    }
+                }
+                else if (sceneName == "Map1")
+                {
+                    if (Calls.Players.GetAllPlayers().Count > 1)
+                    {
+                        stones = Calls.GameObjects.Map1.Logic.MatchSlabOne.MatchSlab.Slabbuddymatchvariant.MatchForm.ShiftstoneQuickswapper.GetGameObject().GetComponentsInChildren<ShiftStone>(true);
+                        stones.Concat(Calls.GameObjects.Map1.Logic.MatchSlabTwo.MatchSlab.Slabbuddymatchvariant.MatchForm.ShiftstoneQuickswapper.GetGameObject().GetComponentsInChildren<ShiftStone>(true));
+                    }
+                }
 
-                foreach (ShiftStone stone in Calls.GameObjects.Gym.LOGIC.Heinhouserproducts.ShiftstoneQuickswapper.GetGameObject().GetComponentsInChildren<ShiftStone>(true))
+                foreach (ShiftStone stone in stones)
                 {
                     var renderers = stone.GetComponentsInChildren<MeshRenderer>();
                     foreach (MeshRenderer renderer in renderers)
