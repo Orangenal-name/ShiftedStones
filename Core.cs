@@ -7,7 +7,7 @@ using RumbleModUI;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.1.1", "Orangenal", null)]
+[assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.1.2", "Orangenal", null)]
 [assembly: MelonGame("Buckethead Entertainment", "RUMBLE")]
 
 namespace ShiftedStones
@@ -162,6 +162,8 @@ namespace ShiftedStones
             //        renderer.material = originalMaterials[shiftstoneOrder.IndexOf(name + " Stone")];
             //    }
             //}
+
+            customStones.RemoveAll(r => r.GetComponentInParent<ShiftStone>() == null);
 
             foreach (MeshRenderer renderer in customStones.Where(r => r.GetComponentInParent<ShiftStone>().gameObject.name.Replace("(Clone)", "") == name + "Stone"))
             {
