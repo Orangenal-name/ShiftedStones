@@ -1,11 +1,13 @@
 ﻿using HarmonyLib;
 using Il2CppRUMBLE.Combat.ShiftStones;
 using MelonLoader;
+using RumbleModdingAPI;
 using RumbleModUI;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using static MelonLoader.MelonLogger;
 
-[assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.0.1", "Orangenal", null)]
+[assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.1.0", "Orangenal", null)]
 [assembly: MelonGame("Buckethead Entertainment", "RUMBLE")]
 
 namespace ShiftedStones
@@ -35,6 +37,8 @@ namespace ShiftedStones
         internal static List<MeshRenderer> customStones = [];
         internal static GameObject materialStorage;
         internal static MelonLogger.Instance Logger;
+        internal static List<ShiftStone> randomiserStones = [];
+        private bool hasRandomiser = false;
 
         public override void OnInitializeMelon()
         {
@@ -73,9 +77,28 @@ namespace ShiftedStones
             LoggerInstance.Msg("Initialised.");
         }
 
+        public override void OnLateInitializeMelon()
+        {
+            hasRandomiser = Calls.Mods.findOwnMod("ShiftStoneRandomizer", "0.0.0", false);
+        }
+
         private void OnUIInit()
         {
             UI.instance.AddMod(mod);
+        }
+
+        public static string GetPath(GameObject obj)
+        {
+            string path = obj.name;
+            Transform parent = obj.transform.parent;
+
+            while (parent != null)
+            {
+                path = parent.name + "/" + path;
+                parent = parent.parent;
+            }
+
+            return path;
         }
 
         private void OnSave(object sender = null, EventArgs e = null)
@@ -85,6 +108,28 @@ namespace ShiftedStones
             var arr = loadedStones.Where(s => s.StoneName == name + " Stone").ToArray();
             string colour = ((ValueChange<string>)e).Value;
 
+            if (hasRandomiser)
+            {
+                MelonLogger.Msg("has randomiser");
+
+                customStones.RemoveAll(r => r.GetComponentInParent<ShiftStone>() == null);
+
+                foreach (ShiftStone stone in Calls.GameObjects.Gym.LOGIC.Heinhouserproducts.ShiftstoneQuickswapper.GetGameObject().GetComponentsInChildren<ShiftStone>(true))
+                {
+                    var renderers = stone.GetComponentsInChildren<MeshRenderer>();
+                    foreach (MeshRenderer renderer in renderers)
+                    {
+                        if (renderer.gameObject.name.Contains("%") && !customStones.Contains(renderer))
+                        {
+                            customStones.Add(renderer);
+                            //MelonLogger.Msg(GetPath(renderer.gameObject));
+                        }
+                    }
+                    if (stone.StoneName == name + " Stone")
+                        arr = arr.AddItem(stone).ToArray();
+                }
+            }
+
             //if (colour.ToLower() == "vanilla" && customStones.Count() > 0)
             //{
             //    foreach (MeshRenderer renderer in customStones.Where(r => r.transform.parent.parent.name == name + "Stone"))
@@ -93,8 +138,10 @@ namespace ShiftedStones
             //        renderer.material = originalMaterials[shiftstoneOrder.IndexOf(name + " Stone")];
             //    }
             //}
-            foreach (MeshRenderer renderer in customStones.Where(r => r.GetComponentInParent<ShiftStone>().gameObject.name == name + "Stone"))
+
+            foreach (MeshRenderer renderer in customStones.Where(r => r.GetComponentInParent<ShiftStone>().gameObject.name.Replace("(Clone)", "") == name + "Stone"))
             {
+                MelonLogger.Msg(GetPath(renderer.gameObject));
                 if (colour.ToLower() == "vanilla" && customStones.Count > 0)
                 {
                     renderer.material = originalMaterials[shiftstoneOrder.IndexOf(name + " Stone")];
@@ -106,6 +153,7 @@ namespace ShiftedStones
                     ShiftstonePatch.setColours(colour, ref material);
                 }
             }
+
             for (int i = 0; i < arr.Count(); i++)
             {
                 if (arr[i] == null) continue;
@@ -138,6 +186,7 @@ namespace ShiftedStones
         {
             loadedStones = [];
             customStones = [];
+            randomiserStones = [];
         }
     }
 
