@@ -7,7 +7,7 @@ using RumbleModUI;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.2.0", "Orangenal", null)]
+[assembly: MelonInfo(typeof(ShiftedStones.Core), "ShiftedStones", "1.2.1", "Orangenal", null)]
 [assembly: MelonGame("Buckethead Entertainment", "RUMBLE")]
 
 namespace ShiftedStones
@@ -35,7 +35,6 @@ namespace ShiftedStones
         internal static string[] shiftstoneOrder = ["Flow Stone", "Vigor Stone", "Guard Stone", "Stubborn Stone", "Charge Stone", "Volatile Stone", "Surge Stone", "Adamant Stone"];
         internal static List<ShiftStone> loadedStones = [];
         internal static List<MeshRenderer> customStones = [];
-        internal static GameObject materialStorage;
         internal static MelonLogger.Instance Logger;
         internal static List<ShiftStone> randomiserStones = [];
         private bool hasRandomiser = false;
@@ -67,10 +66,6 @@ namespace ShiftedStones
             mod.GetFromFile();
 
             UI.instance.UI_Initialized += OnUIInit;
-
-            materialStorage = new GameObject();
-            materialStorage.name = "Shiftstone material storage";
-            GameObject.DontDestroyOnLoad(materialStorage);
 
             Logger = LoggerInstance;
 
@@ -270,21 +265,13 @@ namespace ShiftedStones
             if (Core.originalMaterials[index] == null)
             {
                 Core.originalMaterials[index] = new Material(renderer.material);
-                GameObject materialCopy = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                materialCopy.GetComponent<MeshRenderer>().material = Core.originalMaterials[index];
-                materialCopy.name = $"Material Copy";
-                materialCopy.transform.parent = Core.materialStorage.transform;
-                materialCopy.transform.position = new(10000f, 10000f, 10000f);
+                Core.originalMaterials[index].hideFlags = HideFlags.DontUnloadUnusedAsset;
             }
 
             if (Core.clonedMaterials[index] == null)
             {
                 Core.clonedMaterials[index] = new Material(renderer.material);
-                GameObject materialCopy = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                materialCopy.GetComponent<MeshRenderer>().material = Core.clonedMaterials[index];
-                materialCopy.name = $"Material Copy";
-                materialCopy.transform.parent = Core.materialStorage.transform;
-                materialCopy.transform.position = new(10000f, 10000f, 10000f);
+                Core.clonedMaterials[index].hideFlags = HideFlags.DontUnloadUnusedAsset;
                 if (((string)Core.mod.Settings[index + 1].SavedValue).ToLower() != "vanilla")
                     setColours((string)Core.mod.Settings[index + 1].SavedValue, ref Core.clonedMaterials[index]);
             }
